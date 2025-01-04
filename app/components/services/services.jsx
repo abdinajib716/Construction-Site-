@@ -23,7 +23,7 @@ const servicesData = [
 
 const Services = () => {
   const containerRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const isInView = useInView(containerRef, { once: true, margin: "-20px" });
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
@@ -36,7 +36,7 @@ const Services = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15,
+        staggerChildren: 0.1,
       },
     },
   };
@@ -56,6 +56,7 @@ const Services = () => {
         stiffness: 100,
         damping: 15,
         mass: 1,
+        duration: 0.3
       },
     },
   };
@@ -73,7 +74,7 @@ const Services = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.3 }}
           className="mb-16 sm:mb-24 text-center max-w-3xl mx-auto"
         >
           <span className="text-sm font-semibold tracking-wider text-yellow-500 uppercase mb-3 block">
@@ -87,8 +88,8 @@ const Services = () => {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 96, opacity: 1 }}
             transition={{ 
-              duration: 0.8, 
-              delay: 0.2,
+              duration: 0.3, 
+              delay: 0.1,
               ease: "easeOut"
             }}
           />
@@ -104,14 +105,14 @@ const Services = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 place-items-center"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12"
         >
           {servicesData.map((service, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
               whileHover={{ y: -8 }}
-              className="bg-white overflow-hidden group w-[350px] rounded-sm shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
+              className="bg-white overflow-hidden group rounded-sm shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
             >
               <div className="relative h-52 overflow-hidden">
                 <motion.img
@@ -120,12 +121,13 @@ const Services = () => {
                   className="w-full h-full object-cover"
                   whileHover={{ scale: 1.08 }}
                   transition={{ 
-                    duration: 0.4,
+                    duration: 0.3,
                     ease: "easeOut"
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
+
               <div className="p-8">
                 <h3 className="text-xl font-bold mb-4 text-[#1B2431] group-hover:text-yellow-500 transition-colors duration-300">
                   {service.title}
@@ -138,7 +140,7 @@ const Services = () => {
                     className="w-12 h-[2px] bg-yellow-500 mr-4"
                     initial={{ width: 0 }}
                     whileInView={{ width: 48 }}
-                    transition={{ duration: 0.3, delay: 0.2 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
                   />
                   <span className="text-sm font-semibold text-yellow-500 uppercase tracking-wider">
                     Learn More
