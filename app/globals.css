@@ -39,6 +39,32 @@
   .animate-scroll-down {
     animation: scrollDown 1.5s ease-in-out infinite;
   }
+
+  .animate-fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    will-change: transform, opacity;
+  }
+
+  .animate-fade-in-delay-1 {
+    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+    will-change: transform, opacity;
+    opacity: 0;
+  }
+
+  .animate-fade-in-delay-2 {
+    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+    will-change: transform, opacity;
+    opacity: 0;
+  }
+
+  /* Performance optimization for mobile */
+  @media (max-width: 768px) {
+    .animate-fade-in,
+    .animate-fade-in-delay-1,
+    .animate-fade-in-delay-2 {
+      animation-duration: 0.6s;
+    }
+  }
 }
 
 @keyframes blink {
@@ -50,17 +76,25 @@
   }
 }
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes scrollDown {
   0% {
     transform: translateY(0);
-    opacity: 1;
   }
   50% {
-    transform: translateY(6px);
-    opacity: 0.5;
+    transform: translateY(10px);
   }
   100% {
     transform: translateY(0);
-    opacity: 1;
   }
 }
