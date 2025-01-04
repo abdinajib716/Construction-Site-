@@ -12,6 +12,7 @@ const Hero = () => {
   const [isClient, setIsClient] = useState(false);
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isIntersecting, setIsIntersecting] = useState(false);
   const [videoError, setVideoError] = useState(false);
@@ -51,19 +52,36 @@ const Hero = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Optimized video loading with buffering
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !isIntersecting || !shouldLoadVideo) return;
 
     const loadVideo = async () => {
       try {
+        // Set video quality based on connection speed
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlowConnection = connection && (connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g');
+
+        // Optimize video settings
+        video.preload = "auto";
+        video.playsInline = true;
+        video.muted = true;
+        video.loop = true;
+        
+        // Set playback rate based on device
         if (window.innerWidth <= 768) {
-          video.playbackRate = 1; // Normal speed for mobile
+          video.playbackRate = isSlowConnection ? 0.5 : 1;
         } else {
-          video.playbackRate = 0.75; // Slower speed for desktop
+          video.playbackRate = isSlowConnection ? 0.5 : 0.75;
         }
-        await video.play();
-        setIsVideoReady(true);
+
+        // Wait for enough video to be loaded
+        if (video.readyState >= 3) {
+          await video.play();
+          setIsVideoReady(true);
+          setIsVideoLoaded(true);
+        }
       } catch (error) {
         console.error('Video playback failed:', error);
         setVideoError(true);
@@ -72,25 +90,43 @@ const Hero = () => {
     };
 
     const handleCanPlay = () => {
-      requestAnimationFrame(loadVideo);
-    };
-
-    const handleLoadedMetadata = () => {
-      if (window.innerWidth <= 768) {
-        video.playbackRate = 1;
-      } else {
-        video.playbackRate = 0.75;
+      if (!isVideoLoaded) {
+        requestAnimationFrame(loadVideo);
       }
     };
 
+    const handleLoadedData = () => {
+      setIsVideoLoaded(true);
+    };
+
+    const handleWaiting = () => {
+      setIsVideoReady(false);
+    };
+
+    const handlePlaying = () => {
+      setIsVideoReady(true);
+    };
+
+    // Add event listeners
     video.addEventListener('canplay', handleCanPlay);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('loadeddata', handleLoadedData);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('playing', handlePlaying);
+
+    // Start loading
+    loadVideo();
 
     return () => {
       video.removeEventListener('canplay', handleCanPlay);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('loadeddata', handleLoadedData);
+      video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('playing', handlePlaying);
+      if (video.readyState >= 2) {
+        video.pause();
+        video.currentTime = 0;
+      }
     };
-  }, [isIntersecting, shouldLoadVideo]);
+  }, [isIntersecting, shouldLoadVideo, isVideoLoaded]);
 
   // Optimized mouse follow effect - only on desktop
   const handleMouseMove = useCallback(
@@ -128,31 +164,42 @@ const Hero = () => {
         {/* Initial background color */}
         <div className="absolute inset-0 bg-[#1B2431]" />
         
-        {/* Video with lazy loading */}
+        {/* Video with optimized loading */}
         {isIntersecting && shouldLoadVideo && (
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            loop
-            preload="metadata"
-            webkit-playsinline="true"
-            x5-playsinline="true"
-            onError={() => setVideoError(true)}
-            className={cn(
-              "absolute top-0 left-0 h-full w-full object-cover scale-105",
-              isVideoReady ? "opacity-100" : "opacity-0",
-              "transition-opacity duration-300 filter brightness-[0.85]",
-              videoError ? "hidden" : ""
+          <>
+            {!isVideoReady && (
+              <div className="absolute inset-0 bg-[#1B2431] animate-pulse" />
             )}
-          >
-            <source 
-              src="/videos/construction-video.mp4#t=0.1" 
-              type="video/mp4"
-            />
-          </video>
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              loop
+              preload="auto"
+              webkit-playsinline="true"
+              x5-playsinline="true"
+              onError={() => setVideoError(true)}
+              className={cn(
+                "absolute top-0 left-0 h-full w-full object-cover scale-105",
+                isVideoReady ? "opacity-100" : "opacity-0",
+                "transition-opacity duration-700 ease-in-out filter brightness-[0.85]",
+                videoError ? "hidden" : ""
+              )}
+            >
+              <source 
+                src="/videos/construction-video.mp4#t=0.1"
+                type="video/mp4"
+                media="all and (min-width: 768px)"
+              />
+              <source 
+                src="/videos/construction-video.mp4#t=0.1"
+                type="video/mp4"
+                media="all and (max-width: 767px)"
+              />
+            </video>
+          </>
         )}
-
+        
         {/* Static overlay */}
         <div className="absolute inset-0 bg-black/25" />
         
